@@ -1,6 +1,6 @@
 # app.py — SH17 Safety Equipment Detector (Streamlit)
 # ---------------------------------------------------
-# Jalankan:  streamlit run app.py
+# Jalankan (lokal):  streamlit run app.py
 
 import io
 import time
@@ -12,7 +12,7 @@ import numpy as np
 from PIL import Image
 import streamlit as st
 from ultralytics import YOLO
-import torch  # NEW: untuk info GPU/CPU
+import torch  # untuk info env
 
 TITLE = "Safety Equipment Detection (YOLOv11 • SH17)"
 PAGE_ICON = "🦺"
@@ -36,14 +36,14 @@ ID2NAME = {
 
 # ---------- Helpers ----------
 def get_device_info(device_str: str) -> str:
-    """Return pretty device label, e.g., 'AMD Ryzen 7 7435HS' or 'NVIDIA GeForce RTX 4060'."""
+    """Label device ringkas untuk caption."""
     if device_str == "cuda" and torch.cuda.is_available():
         try:
-            return torch.cuda.get_device_name(0)  # mis. NVIDIA GeForce RTX 4060
+            return torch.cuda.get_device_name(0)
         except Exception:
             return "CUDA"
-    # CPU label spesifik sesuai permintaan
-    return "AMD Ryzen 7 7435HS"
+    # CPU label (Streamlit Cloud = CPU only)
+    return "CPU"
 
 def find_default_weights():
     """Coba cari weights best.pt otomatis di runs_sh17/**/weights/."""
@@ -77,7 +77,7 @@ def _resolve_weight_path(p: str):
     raise FileNotFoundError(f"Tidak menemukan weights .pt di: {p}")
 
 @st.cache_resource(show_spinner=True)
-def load_model(path: str, device_str: str = "cuda"):
+def load_model(path: str, device_str: str = "cpu"):  # << CPU-ONLY DEFAULT
     weight_path = _resolve_weight_path(path)
     m = YOLO(weight_path)
     # Pastikan ada names
@@ -127,27 +127,35 @@ else:
 
 with st.sidebar:
     st.header("Controls")
+
     model_path = st.text_input(
         "Model path (.pt) / folder weights",
         str(_auto_w) if _auto_w else "",
         help="Bisa file .pt langsung atau folder yang berisi /weights/best.pt",
     )
-    device = st.selectbox("Device", ["cuda", "cpu"], index=0)
+
+    # -------- CPU-ONLY CHANGES --------
+    device = "cpu"
+    st.info("Running on **CPU** (Streamlit Cloud).")
+    # ----------------------------------
+
     conf = st.slider("Confidence threshold", 0.05, 0.95, 0.50, 0.01)
-    imgsz = st.select_slider("Inference size (px)", [640, 800, 960, 1280], value=960)
+
+    # default sedikit lebih kecil agar ringan di CPU
+    imgsz = st.select_slider("Inference size (px)", [640, 800, 960, 1280], value=640)
+
     classes_filter = st.multiselect(
         "Detect only classes (opsional)",
         options=list(ID2NAME.values()),
         default=[],
     )
-    show_fps_overlay = st.checkbox("Show FPS overlay (Video/Live)", value=True)  # diperluas ke Live juga
+    show_fps_overlay = st.checkbox("Show FPS overlay (Video/Live)", value=True)
     save_annot = st.checkbox("Save annotated outputs", value=False)
     out_dir = st.text_input("Output folder", "outputs")
 
-    # Device/GPU info
+    # Info env
     dev_label = get_device_info(device)
-    st.caption(f"**Device info:** {dev_label}")
-    st.caption(f"Torch {torch.__version__} · CUDA available: {torch.cuda.is_available()}")
+    st.caption(f"**Device:** {dev_label} · Torch {torch.__version__} · CUDA available: {torch.cuda.is_available()}")
 
 # Load model sekali
 try:
@@ -156,7 +164,7 @@ except Exception as e:
     st.error(f"Gagal load model: {e}")
     st.stop()
 
-# ⬇️ Tambah tab baru: Live Webcam
+# ⬇️ Tabs
 tab_img, tab_vid, tab_cam, tab_live = st.tabs(["📷 Image", "🎬 Video", "📸 Webcam Snapshot", "🔴 Live Webcam"])
 
 # ---------------- IMAGE ----------------
@@ -164,14 +172,12 @@ with tab_img:
     st.subheader("Image Inference")
     file = st.file_uploader("Upload image", type=["jpg", "jpeg", "png", "bmp", "webp"])
     if file:
-        # baca sebagai BGR (konsisten)
         bgr = uploaded_image_to_bgr(file)
         st.image(bgr_to_rgb(bgr), caption="Original", **IMGKW)
 
         if st.button("Run detection", key="run_img"):
             t0 = time.perf_counter()
             cls_ids = _class_ids_from_names(classes_filter)
-            # predict dengan BGR
             results = model.predict(
                 source=bgr,
                 conf=conf,
@@ -219,7 +225,6 @@ with tab_vid:
             cls_ids = _class_ids_from_names(classes_filter)
             i = 0
 
-            # --- variabel akumulasi FPS ---
             fps_ema = None
             total_pred_s = 0.0
             total_frames = 0
@@ -238,42 +243,28 @@ with tab_vid:
                     imgsz=imgsz,
                     verbose=False,
                 )
-                annot_bgr = results[0].plot()  # BGR (sudah ada bbox)
+                annot_bgr = results[0].plot()  # BGR
                 t2 = time.perf_counter()
 
-                # --- FPS instan & smooth ---
                 dt = max(t2 - t1, 1e-9)
                 fps_inst = 1.0 / dt
                 fps_ema = fps_inst if fps_ema is None else (0.90 * fps_ema + 0.10 * fps_inst)
                 total_pred_s += dt
                 total_frames += 1
 
-                # --- Overlay FPS pada frame ---
                 if show_fps_overlay:
                     label = f"{dev_label} | {fps_ema:.1f} FPS"
                     cv2.rectangle(annot_bgr, (8, 8), (8 + 420, 38), (0, 0, 0), -1)
-                    cv2.putText(
-                        annot_bgr,
-                        label,
-                        (16, 32),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.75,
-                        (255, 255, 255),
-                        2,
-                        cv2.LINE_AA,
-                    )
+                    cv2.putText(annot_bgr, label, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2, cv2.LINE_AA)
 
-                annot_rgb = bgr_to_rgb(annot_bgr)  # RGB untuk display
+                annot_rgb = bgr_to_rgb(annot_bgr)
                 stframe.image(annot_rgb, **IMGKW)
                 if writer:
-                    writer.write(annot_bgr)  # simpan BGR ke video
+                    writer.write(annot_bgr)
 
                 i += 1
                 if n_frames:
-                    pbar.progress(
-                        min(i / n_frames, 1.0),
-                        text=f"Processing…  {fps_ema:.1f} FPS" if fps_ema else "Processing…",
-                    )
+                    pbar.progress(min(i / n_frames, 1.0), text=f"Processing…  {fps_ema:.1f} FPS" if fps_ema else "Processing…")
 
             cap.release()
             if writer:
@@ -283,9 +274,7 @@ with tab_vid:
 
             if total_frames:
                 avg_fps = total_frames / total_pred_s
-                st.info(
-                    f"**Average FPS** ({dev_label}, imgsz={imgsz}): {avg_fps:.1f} FPS · Frames: {total_frames}"
-                )
+                st.info(f"**Average FPS** ({dev_label}, imgsz={imgsz}): {avg_fps:.1f} FPS · Frames: {total_frames}")
 
 # --------------- WEBCAM SNAPSHOT ---------------
 with tab_cam:
