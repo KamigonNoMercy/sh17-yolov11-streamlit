@@ -41,4 +41,8 @@ This repository contains my **YOLOv11 object detection model** trained on the
 
 ---
 
-## 📂 Project Structure
+## License
+- Code and trained YOLOv11 model weights in this repository are released under the **MIT License**.  
+- The dataset used for training is the **[SH17 PPE dataset](https://www.kaggle.com/datasets/mugheesahmad/sh17-dataset-for-ppe-detection)** by *mugheesahmad*, which is licensed under **CC BY-NC-SA 4.0**.  
+- This repository does **not** include the dataset itself. Please download it directly from Kaggle.  
+
