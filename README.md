@@ -1,4 +1,4 @@
-# 🦺 SH17 Safety Equipment Detection (YOLOv11 + Streamlit)
+# 🦺 SH17 Safety Equipment Detection (YOLOv11)
 
 This repository contains my **YOLOv11 object detection model** trained on the 
 [SH17 PPE dataset](https://www.kaggle.com/datasets/mugheesahmad/sh17-dataset-for-ppe-detection) 
@@ -28,16 +28,24 @@ This repository contains my **YOLOv11 object detection model** trained on the
 ## ⚙️ Tech Stack
 - **Model:** YOLOv11 (Ultralytics)
 - **Dataset:** SH17 PPE dataset (Kaggle, Ahmad Mughees)
-- **Framework:** Streamlit + OpenCV + Ultralytics
-- **Deployment:** 
-  - [Streamlit Community Cloud](https://share.streamlit.io) (CPU only)  
-  - [Hugging Face Spaces](https://huggingface.co/spaces) (GPU available)
+- **Framework:** Gradio + OpenCV + Ultralytics
+- **Deployment:** [Hugging Face Spaces](https://huggingface.co/spaces/Kamigon/sh17-yolov11)  
+  - 🖥️ **Runs on CPU** (free tier)  
+  - ⚡ Can also run on **GPU** if Space hardware is upgraded in the future  
+
+---
+
+## 📓 Notebook
+You can view the **training & fine-tuning notebook** on Google Colab:
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](
+https://colab.research.google.com/drive/1n4wYO_tKeQ4B7NGe5eo-4RdkpfDI2mZR?usp=sharing
+)
 
 ---
 
 ## 🚀 Demo
-- 🔗 **Streamlit App**: [coming soon]  
-- 🔗 **Hugging Face Space**: [coming soon]  
+- 🔗 **Hugging Face Space**: [https://huggingface.co/spaces/Kamigon/sh17-yolov11](https://huggingface.co/spaces/Kamigon/sh17-yolov11)  
 
 ---
 
@@ -45,4 +53,3 @@ This repository contains my **YOLOv11 object detection model** trained on the
 - Code and trained YOLOv11 model weights in this repository are released under the **MIT License**.  
 - The dataset used for training is the **[SH17 PPE dataset](https://www.kaggle.com/datasets/mugheesahmad/sh17-dataset-for-ppe-detection)** by *mugheesahmad*, which is licensed under **CC BY-NC-SA 4.0**.  
 - This repository does **not** include the dataset itself. Please download it directly from Kaggle.  
-
