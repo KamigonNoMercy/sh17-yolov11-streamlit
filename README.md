@@ -38,7 +38,10 @@ This repository contains my **YOLOv11 object detection model** trained on the
 ## 📒 Notebook
 You can view the **training & fine-tuning notebook** on Google Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]([ https://colab.research.google.com/drive/1n4wYO_tKeQ4B7NGe5eo-4RdkpfDI2mZR?usp=sharing ](https://colab.research.google.com/drive/1Cpc0BvL79VQ8HgJqd_IOClRSeME7oPZQ?usp=sharing))
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](
+https://colab.research.google.com/drive/1Cpc0BvL79VQ8HgJqd_IOClRSeME7oPZQ?usp=sharing
+)
+
 
 
 ---
