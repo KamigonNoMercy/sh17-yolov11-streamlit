@@ -51,6 +51,18 @@ https://colab.research.google.com/drive/1Cpc0BvL79VQ8HgJqd_IOClRSeME7oPZQ?usp=sh
 
 ---
 
+## 🗂️ Repository Structure
+
+sh17-yolov11-streamlit/
+├─ .gitignore
+├─ LICENSE
+├─ README.md
+├─ app.py              # Streamlit app (UI + inference pipeline)
+├─ best.pt             # Trained YOLOv11 weights
+└─ requirements.txt    # Python dependencies
+
+---
+
 ## License
 - Code and trained YOLOv11 model weights in this repository are released under the **MIT License**.  
 - The dataset used for training is the **[SH17 PPE dataset](https://www.kaggle.com/datasets/mugheesahmad/sh17-dataset-for-ppe-detection)** by *mugheesahmad*, which is licensed under **CC BY-NC-SA 4.0**.  
